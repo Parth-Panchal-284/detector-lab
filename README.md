@@ -93,6 +93,6 @@ For every run, record model/checkpoint, dataset and split, image count, score th
 
 ```bash
 git add .gitignore README.md RUN_LOG.md configs slurm
-git commit -m "Add HPC object detection experiment scaffold"
+git commit -m "Add object detection experiment scaffold"
 git push -u origin main
 ```

@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # Download the exact COCO/KITTI folders expected by the ngdet tutorial.
-# Run on an HPC transfer/login node approved for downloads, not inside a GPU job.
+# Run from an approved transfer/login node, not inside a GPU job.
 
 set -euo pipefail
 
