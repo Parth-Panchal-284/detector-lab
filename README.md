@@ -28,6 +28,7 @@ Each model is evaluated on both datasets (six model/dataset runs). Checkpoints a
 - `configs/jobs.tsv`: the six model/dataset pairs scheduled by the Slurm array.
 - `slurm/evaluate_array.sbatch`: one GPU per task; set dataset and tutorial-repository paths as environment variables before submission.
 - `slurm/latency.sbatch`: optional same-GPU inference speed comparison across the three models.
+- `scripts/download_datasets.sh`: resumable download and extraction of the required COCO/KITTI splits.
 - `RUN_LOG.md`: fillable record of environment, job IDs, metrics, and deviations.
 
 ## HPC setup and run
@@ -54,7 +55,17 @@ export MAX_IMAGES=20       # smoke test first; use 150 for the main run, 0 for a
 export SCORE_THR=0.25
 ```
 
-The KITTI root should contain `training/image_2` and `training/label_2`, per the tutorial. The COCO paths should point to `val2017/` and `instances_val2017.json`.
+If the data are not already available in shared storage, choose an HPC-approved persistent or scratch location with enough quota and roughly 30 GB free, then run the downloader on a transfer/login node approved for external downloads:
+
+```bash
+cd ~/Downloads/CMPE249/detector-lab
+df -h "$HOME"
+bash scripts/download_datasets.sh "$HOME/detector-lab-data"
+```
+
+If SJSU HPC provides a scratch/transfer location, use that instead of `$HOME`; confirm the correct location and transfer policy with the cluster guidance. The KITTI download is large (the left color training images are about 12 GB compressed). COCO and KITTI are downloaded from their official dataset endpoints; follow their terms of use. The script checks/extracts archives and prints the expected paths when done.
+
+Then set the paths from that script's output. The KITTI root should contain `training/image_2` and `training/label_2`, per the tutorial. The COCO paths should point to `val2017/` and `instances_val2017.json`.
 
 Submit up to three tasks concurrently (adjust to cluster policy/availability):
 
