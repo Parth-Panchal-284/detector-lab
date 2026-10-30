@@ -55,15 +55,15 @@ export MAX_IMAGES=20       # smoke test first; use 150 for the main run, 0 for a
 export SCORE_THR=0.25
 ```
 
-If the data are not already available in shared storage, choose an HPC-approved persistent or scratch location with enough quota and roughly 30 GB free, then run the downloader on a transfer/login node approved for external downloads:
+If the data are not already available in shared storage, run the downloader from the parent `CMPE249` directory into a sibling `datasets/` folder. This keeps the downloaded files outside both Git repositories while keeping the whole project in one place. Make sure the storage has roughly 30 GB free and use a transfer/login node approved for external downloads:
 
 ```bash
-cd ~/Downloads/CMPE249/detector-lab
-df -h "$HOME"
-bash scripts/download_datasets.sh "$HOME/detector-lab-data"
+cd ~/Downloads/CMPE249
+df -h .
+bash detector-lab/scripts/download_datasets.sh "$PWD/datasets"
 ```
 
-If SJSU HPC provides a scratch/transfer location, use that instead of `$HOME`; confirm the correct location and transfer policy with the cluster guidance. The KITTI download is large (the left color training images are about 12 GB compressed). COCO and KITTI are downloaded from their official dataset endpoints; follow their terms of use. The script checks/extracts archives and prints the expected paths when done.
+The KITTI download is large (the left color training images are about 12 GB compressed). COCO and KITTI are downloaded from their official dataset endpoints; follow their terms of use. The script checks/extracts archives and prints the expected paths when done.
 
 Then set the paths from that script's output. The KITTI root should contain `training/image_2` and `training/label_2`, per the tutorial. The COCO paths should point to `val2017/` and `instances_val2017.json`.
 
