@@ -1,0 +1,7 @@
+# task_id<TAB>model_tag<TAB>model_spec<TAB>dataset
+0	fasterrcnn	torchvision:fasterrcnn_resnet50_fpn_v2	coco
+1	yolo11m	yolo:yolo11m.pt	coco
+2	rtdetr	hf_detr:PekingU/rtdetr_r50vd	coco
+3	fasterrcnn	torchvision:fasterrcnn_resnet50_fpn_v2	kitti
+4	yolo11m	yolo:yolo11m.pt	kitti
+5	rtdetr	hf_detr:PekingU/rtdetr_r50vd	kitti

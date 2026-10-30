@@ -1,0 +1,18 @@
+# Experiment outputs and downloaded model/data artifacts
+results/
+logs/
+*.pt
+*.pth
+*.onnx
+*.engine
+
+# Python environments and caches
+.venv/
+__pycache__/
+*.py[cod]
+.pytest_cache/
+
+# Local machine/HPC configuration
+.env
+.env.*
+!*.example
