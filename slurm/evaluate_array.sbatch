@@ -17,7 +17,9 @@ set -euo pipefail
 : "${KITTI_ROOT:?Set KITTI_ROOT to the KITTI root with training/image_2 and training/label_2}"
 
 PROJECT_ROOT="${SLURM_SUBMIT_DIR:?Submit this job from the detector-lab checkout}"
-PYTHON_BIN="${PYTHON_BIN:-python}"
+PYTHON_BIN="${PYTHON_BIN:-/app/rl9.x/ml/torch/2.6/bin/python}"
+PYTHON_PACKAGES="${PYTHON_PACKAGES:-$PROJECT_ROOT/../python-packages}"
+export PYTHONPATH="$PYTHON_PACKAGES${PYTHONPATH:+:$PYTHONPATH}"
 MAX_IMAGES="${MAX_IMAGES:-150}"
 SCORE_THR="${SCORE_THR:-0.25}"
 RESULTS_DIR="${RESULTS_DIR:-$PROJECT_ROOT/results}"
@@ -58,7 +60,8 @@ echo "Host: $(hostname)"
 echo "CUDA_VISIBLE_DEVICES=${CUDA_VISIBLE_DEVICES:-unset}"
 if command -v nvidia-smi >/dev/null 2>&1; then nvidia-smi; fi
 echo "Python: $PYTHON_BIN"
-"$PYTHON_BIN" -c 'import torch; print("torch", torch.__version__, "cuda", torch.cuda.is_available()); print(torch.cuda.get_device_name(0) if torch.cuda.is_available() else "NO CUDA")'
+"$PYTHON_BIN" -c 'import sys, torch, torchvision; print("python", sys.version); print("torch", torch.__version__, torch.__file__); print("torchvision", torchvision.__version__, torchvision.__file__); print("cuda", torch.cuda.is_available()); print(torch.cuda.get_device_name(0) if torch.cuda.is_available() else "NO CUDA")'
+"$PYTHON_BIN" -c 'import torch; assert torch.cuda.is_available(), "This Slurm task has no visible CUDA GPU"'
 printf 'Command:'; printf ' %q' "$PYTHON_BIN" "${args[@]}"; printf '\n'
 "$PYTHON_BIN" "${args[@]}"
 echo "Finish: $(date -Is)"

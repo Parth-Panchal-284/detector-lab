@@ -42,7 +42,7 @@ cd detector-lab
 mkdir -p logs/slurm results
 ```
 
-Create/activate a Python environment following the tutorial and the cluster's CUDA/PyTorch guidance. The tutorial lists `torch`, `torchvision`, `transformers`, `ultralytics`, `pycocotools`, `opencv-python`, `matplotlib`, and `pyarrow`. Verify that the chosen Python can import PyTorch and see the allocated CUDA device before submitting.
+Use the cluster's `ml/torch/2.6` module as the Python 3.12 runtime and keep additional packages in the sibling `python-packages/` directory. The Slurm scripts explicitly select that interpreter and add the package directory to `PYTHONPATH`, so they do not depend on the submitting shell's Python selection. The tutorial's runtime packages are `torch`, `torchvision`, `transformers`, `ultralytics`, `pycocotools`, `opencv-python`, `matplotlib`, and `pyarrow`.
 
 Set paths for your own HPC storage (examples only; replace them with your real paths):
 

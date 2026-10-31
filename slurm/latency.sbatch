@@ -11,13 +11,17 @@
 
 set -euo pipefail
 : "${TUTORIAL_ROOT:?Set TUTORIAL_ROOT to the professor repository root}"
-PYTHON_BIN="${PYTHON_BIN:-python}"
+PROJECT_ROOT="${SLURM_SUBMIT_DIR:?Submit this job from the detector-lab checkout}"
+PYTHON_BIN="${PYTHON_BIN:-/app/rl9.x/ml/torch/2.6/bin/python}"
+PYTHON_PACKAGES="${PYTHON_PACKAGES:-$PROJECT_ROOT/../python-packages}"
+export PYTHONPATH="$PYTHON_PACKAGES${PYTHONPATH:+:$PYTHONPATH}"
 
 cd "$TUTORIAL_ROOT"
 echo "Start: $(date -Is)"
 echo "Host: $(hostname)"
 if command -v nvidia-smi >/dev/null 2>&1; then nvidia-smi; fi
-"$PYTHON_BIN" -c 'import torch; print("torch", torch.__version__, "cuda", torch.cuda.is_available()); print(torch.cuda.get_device_name(0) if torch.cuda.is_available() else "NO CUDA")'
+"$PYTHON_BIN" -c 'import sys, torch, torchvision; print("python", sys.version); print("torch", torch.__version__, torch.__file__); print("torchvision", torchvision.__version__, torchvision.__file__); print("cuda", torch.cuda.is_available()); print(torch.cuda.get_device_name(0) if torch.cuda.is_available() else "NO CUDA")'
+"$PYTHON_BIN" -c 'import torch; assert torch.cuda.is_available(), "This Slurm task has no visible CUDA GPU"'
 "$PYTHON_BIN" -m DeepDataMiningLearning.ngdet.latency \
     --models \
         torchvision:fasterrcnn_resnet50_fpn_v2 \
