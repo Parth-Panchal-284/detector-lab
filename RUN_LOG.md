@@ -1,6 +1,6 @@
 # Run log
 
-This file records the experiments used for the final Track A object-detection study. Raw Slurm logs and model predictions remain on HPC; compact final tables and figures are stored under `analysis/`.
+This file records the experiments used for the final object-detection study. Raw Slurm logs and model predictions remain on HPC; compact final tables and figures are stored under `analysis/`.
 
 ## Final environment
 
@@ -20,7 +20,7 @@ This file records the experiments used for the final Track A object-detection st
 | COCO split | `val2017`, 5,000 images |
 | KITTI split | `train`, 5,984 labeled images from local KITTI training data |
 | Training / fine-tuning | None; pretrained checkpoints used zero-shot |
-| Professor repo commit | `cc64ca3ed3aa1ce7df3cf381c492bc7a9826b749` |
+| Upstream framework commit | `cc64ca3ed3aa1ce7df3cf381c492bc7a9826b749` |
 
 Package versions were captured independently in each result directory using `pip freeze`.
 
@@ -77,7 +77,7 @@ The systematic near-zero cyclist AP is treated as a taxonomy/annotation-geometry
 
 Successful Slurm job: `99987`.
 
-Device: NVIDIA A100-PCIE-40GB. The tutorial latency benchmark measures end-to-end `predict()` time including preprocessing and post-processing, with warmup followed by 40 measured iterations.
+Device: NVIDIA A100-PCIE-40GB. The ngdet latency benchmark measures end-to-end `predict()` time including preprocessing and post-processing, with warmup followed by 40 measured iterations.
 
 | Model | Precision | Mean ms | p50 ms | p90 ms | FPS | FP32-relative speedup |
 | --- | --- | ---: | ---: | ---: | ---: | ---: |
@@ -122,7 +122,7 @@ Reran tasks 1, 2, 3, and 5.
 - Task 3, Faster R-CNN / KITTI: completed.
 - Tasks 1 and 5 landed on `cs002` GPU 0 and failed with `CUDA_ERROR_UNKNOWN`. `nvidia-smi` showed 73 volatile uncorrectable ECC errors on that physical GPU.
 
-At this point it was also discovered that the tutorial's `run_eval.py` catches a per-model exception and can return process exit code 0 even when the model evaluation failed. Therefore Slurm could display `COMPLETED` without a fresh `metrics.json`.
+At this point it was also discovered that the upstream framework's `run_eval.py` catches a per-model exception and can return process exit code 0 even when the model evaluation failed. Therefore Slurm could display `COMPLETED` without a fresh `metrics.json`.
 
 ### Job `100642`
 

@@ -10,7 +10,7 @@
 #SBATCH --error=logs/slurm/%x-%j.err
 
 set -euo pipefail
-: "${TUTORIAL_ROOT:?Set TUTORIAL_ROOT to the professor repository root}"
+: "${TUTORIAL_ROOT:?Set TUTORIAL_ROOT to the DeepDataMiningLearning repository root}"
 : "${KITTI_ROOT:?Set KITTI_ROOT to the KITTI dataset root}"
 PROJECT_ROOT="${SLURM_SUBMIT_DIR:?Submit this job from the detector-lab checkout}"
 PYTHON_BIN="${PYTHON_BIN:-/app/rl9.x/ml/torch/2.6/bin/python}"

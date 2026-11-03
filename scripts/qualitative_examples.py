@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """Generate reproducible qualitative detector-comparison panels.
 
-The script uses the professor's ngdet adapters so ground truth and predictions
+The script uses the DeepDataMiningLearning repository's ngdet adapters so ground truth and predictions
 share the same driving3 taxonomy. It selects representative images from COCO
 and KITTI using only ground-truth composition, then runs Faster R-CNN,
 YOLO11m, and RT-DETR on exactly the same images.
@@ -89,7 +89,7 @@ def parse_args() -> argparse.Namespace:
     p.add_argument(
         "--tutorial-root",
         required=True,
-        help="Professor DeepDataMiningLearning repository root.",
+        help="DeepDataMiningLearning repository root.",
     )
     p.add_argument("--coco-root", required=True)
     p.add_argument("--coco-ann", required=True)
@@ -403,7 +403,7 @@ def main() -> None:
     if tutorial_root not in sys.path:
         sys.path.insert(0, tutorial_root)
 
-    # Import after inserting the professor repository root into sys.path.
+    # Import after inserting the DeepDataMiningLearning repository root into sys.path.
     import torch
     from DeepDataMiningLearning.ngdet.datasets import EvalDataset
     from DeepDataMiningLearning.ngdet.detectors.base import build_detector

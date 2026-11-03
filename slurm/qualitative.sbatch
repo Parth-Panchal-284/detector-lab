@@ -11,7 +11,7 @@
 
 set -euo pipefail
 
-: "${TUTORIAL_ROOT:?Set TUTORIAL_ROOT to the professor repository root}"
+: "${TUTORIAL_ROOT:?Set TUTORIAL_ROOT to the DeepDataMiningLearning repository root}"
 : "${COCO_ROOT:?Set COCO_ROOT to the COCO val2017 image directory}"
 : "${COCO_ANN:?Set COCO_ANN to instances_val2017.json}"
 : "${KITTI_ROOT:?Set KITTI_ROOT to the KITTI root}"

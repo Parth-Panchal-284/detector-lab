@@ -6,7 +6,7 @@ Reproducible zero-shot evaluation of three modern 2D object-detector families on
 
 How well do fundamentally different COCO-pretrained detector families transfer to autonomous-driving imagery without fine-tuning, and what speed-accuracy tradeoffs emerge?
 
-The experiment follows the professor's [`ngdet` tutorial](https://github.com/lkk688/DeepDataMiningLearning/blob/main/DeepDataMiningLearning/ngdet/TUTORIAL.md) and uses its shared `driving3` taxonomy, dataset adapters, COCO-style evaluator, and latency benchmark. The experiments were run against `DeepDataMiningLearning` commit `cc64ca3ed3aa1ce7df3cf381c492bc7a9826b749`.
+The evaluation pipeline builds on the open-source [`ngdet` framework](https://github.com/lkk688/DeepDataMiningLearning/blob/main/DeepDataMiningLearning/ngdet/TUTORIAL.md) and uses its shared `driving3` taxonomy, dataset adapters, COCO-style evaluator, and latency benchmark. The experiments were run against `DeepDataMiningLearning` commit `cc64ca3ed3aa1ce7df3cf381c492bc7a9826b749`.
 
 ## Models
 
@@ -23,7 +23,7 @@ All checkpoints are pretrained. No model was fine-tuned on KITTI.
 The same three models were evaluated on two domains:
 
 - **COCO val2017:** all 5,000 validation images.
-- **KITTI train split:** 5,984 labeled images from local `training/image_2` and `training/label_2`, as resolved by the tutorial harness.
+- **KITTI train split:** 5,984 labeled images from local `training/image_2` and `training/label_2`, as resolved by the upstream evaluation harness.
 
 The tutorial maps native dataset/model labels into the shared taxonomy:
 
@@ -134,7 +134,7 @@ Per-run `pip freeze` and Python-version captures are stored alongside the raw HP
 
 ## Reproducing the full evaluation
 
-Clone this repository and the professor's repository as siblings, then set the dataset paths:
+Clone this repository and the upstream DeepDataMiningLearning repository as siblings, then set the dataset paths:
 
 ```bash
 git clone https://github.com/Parth-Panchal-284/detector-lab.git
