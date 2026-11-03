@@ -1,0 +1,91 @@
+{
+  "coco": {
+    "cyclist": {
+      "eval_index": 2960,
+      "gt_count": 27,
+      "small_count": 2,
+      "class_counts": {
+        "person": 14,
+        "cyclist": 13
+      },
+      "selection_score": 130027
+    },
+    "person": {
+      "eval_index": 2205,
+      "gt_count": 40,
+      "small_count": 23,
+      "class_counts": {
+        "cyclist": 8,
+        "vehicle": 18,
+        "person": 14
+      },
+      "selection_score": 14040
+    },
+    "small": {
+      "eval_index": 3735,
+      "gt_count": 26,
+      "small_count": 25,
+      "class_counts": {
+        "person": 14,
+        "vehicle": 12
+      },
+      "selection_score": 25026
+    },
+    "crowded": {
+      "eval_index": 1827,
+      "gt_count": 43,
+      "small_count": 21,
+      "class_counts": {
+        "cyclist": 2,
+        "vehicle": 28,
+        "person": 13
+      },
+      "selection_score": 43
+    }
+  },
+  "kitti": {
+    "cyclist": {
+      "eval_index": 1686,
+      "gt_count": 15,
+      "small_count": 0,
+      "class_counts": {
+        "vehicle": 3,
+        "cyclist": 5,
+        "person": 7
+      },
+      "selection_score": 50015
+    },
+    "person": {
+      "eval_index": 3063,
+      "gt_count": 19,
+      "small_count": 0,
+      "class_counts": {
+        "person": 18,
+        "vehicle": 1
+      },
+      "selection_score": 18019
+    },
+    "small": {
+      "eval_index": 5327,
+      "gt_count": 17,
+      "small_count": 9,
+      "class_counts": {
+        "person": 12,
+        "vehicle": 4,
+        "cyclist": 1
+      },
+      "selection_score": 9017
+    },
+    "crowded": {
+      "eval_index": 35,
+      "gt_count": 21,
+      "small_count": 2,
+      "class_counts": {
+        "vehicle": 4,
+        "cyclist": 4,
+        "person": 13
+      },
+      "selection_score": 21
+    }
+  }
+}
