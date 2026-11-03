@@ -1,10 +1,15 @@
 # Experiment outputs and downloaded model/data artifacts
 results/
+results_full/
 logs/
 *.pt
 *.pth
 *.onnx
 *.engine
+*.tar.gz
+*.tar.xz
+
+# Keep compact report-ready evidence under analysis/ in Git.
 
 # Python environments and caches
 .venv/

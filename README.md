@@ -1,98 +1,198 @@
 # Detector Lab
 
-Reproducible, zero-shot evaluation of modern 2D object detectors on COCO and KITTI, with runs scheduled on the SJSU HPC GPU cluster.
+Reproducible zero-shot evaluation of three modern 2D object-detector families on COCO and KITTI, with accuracy and inference-speed experiments run on the SJSU HPC GPU cluster.
 
 ## Experiment question
 
-How do three detector families compare on COCO and on the driving-domain KITTI dataset when using pretrained checkpoints without fine-tuning? We will compare accuracy and inference speed, then inspect class and object-scale errors to understand cross-domain degradation.
+How well do fundamentally different COCO-pretrained detector families transfer to autonomous-driving imagery without fine-tuning, and what speed-accuracy tradeoffs emerge?
 
-The experiment follows the professor's [`ngdet` tutorial](https://github.com/lkk688/DeepDataMiningLearning/blob/main/DeepDataMiningLearning/ngdet/TUTORIAL.md), which provides dataset adapters, a shared driving taxonomy, COCO-style metrics, and a report generator. The selected models are:
+The experiment follows the professor's [`ngdet` tutorial](https://github.com/lkk688/DeepDataMiningLearning/blob/main/DeepDataMiningLearning/ngdet/TUTORIAL.md) and uses its shared `driving3` taxonomy, dataset adapters, COCO-style evaluator, and latency benchmark.
 
-| Family | Model spec | Role |
+## Models
+
+| Family | Model | Model spec |
 | --- | --- | --- |
-| Two-stage CNN | `torchvision:fasterrcnn_resnet50_fpn_v2` | Region-proposal baseline |
-| One-stage CNN | `yolo:yolo11m.pt` | YOLO speed/accuracy baseline |
-| Transformer | `hf_detr:PekingU/rtdetr_r50vd` | Query-based real-time detector |
+| Two-stage CNN | Faster R-CNN ResNet-50-FPN v2 | `torchvision:fasterrcnn_resnet50_fpn_v2` |
+| One-stage CNN | YOLO11m | `yolo:yolo11m.pt` |
+| Transformer | RT-DETR R50 | `hf_detr:PekingU/rtdetr_r50vd` |
 
-Each model is evaluated on both datasets (six model/dataset runs). Checkpoints are pretrained; there is no fine-tuning in this experiment. Results cited from the professor's tutorial are background only; all result tables in the submission must come from our own HPC runs.
+All checkpoints are pretrained. No model was fine-tuned on KITTI.
 
-## Evaluation protocol
+## Datasets and evaluation protocol
 
-- Use the tutorial's default `driving3` unified labels: vehicle, person, cyclist. Record the COCO/KITTI-to-unified mapping and discuss taxonomy/box-definition differences.
-- Use the same `--score-thr` for the three closed-set models, the same image subset per dataset, and the same evaluation code. The starter job uses 150 images per dataset for a time-bounded main comparison; first run a 20-image smoke test. If HPC allocation allows, rerun with all images (`MAX_IMAGES=0`) for stronger final numbers.
-- Report mAP@[.50:.95], AP50, AP75, AP by object size, per-class AP, recall, and model/runtime details when emitted by the harness. Measure inference latency separately with the tutorial's `ngdet.latency` command on one allocated GPU.
-- Archive exact commands, job logs, package versions, GPU model, and the generated `metrics.json`/report. Do not commit downloaded datasets, checkpoints, or generated result files.
+The same three models were evaluated on two domains:
 
-## Files
+- **COCO val2017:** all 5,000 validation images.
+- **KITTI:** the 5,984-image labeled evaluation split resolved by the tutorial harness from the local KITTI `training/image_2` and `training/label_2` data.
 
-- `configs/jobs.tsv`: the six model/dataset pairs scheduled by the Slurm array.
-- `slurm/evaluate_array.sbatch`: one GPU per task; set dataset and tutorial-repository paths as environment variables before submission.
-- `slurm/latency.sbatch`: optional same-GPU inference speed comparison across the three models.
-- `scripts/download_datasets.sh`: resumable download and extraction of the required COCO/KITTI splits.
-- `RUN_LOG.md`: fillable record of environment, job IDs, metrics, and deviations.
+The tutorial maps native dataset/model labels into the shared taxonomy:
 
-## HPC setup and run
+- `vehicle`
+- `person`
+- `cyclist`
 
-Clone both this repository and the professor's repository on HPC. Keep datasets and outputs on the storage location allowed by the SJSU HPC instructions (often `$SCRATCH`); do not assume node-local storage persists after a job.
+All reported accuracy values are therefore **driving3 COCO-style metrics**, not standard 80-class COCO leaderboard metrics.
+
+The final full-dataset runs used:
+
+- `MAX_IMAGES=0`
+- `SCORE_THR=0.25`
+- one NVIDIA A100-PCIE-40GB per Slurm task
+- the same evaluation harness for all six model/dataset combinations
+- native framework/model preprocessing rather than forcing one common resize
+
+### Native inference preprocessing
+
+| Model | Input processing / post-processing |
+| --- | --- |
+| Faster R-CNN | Torchvision native resize: shorter edge 800 px, maximum longer edge 1333 px; internal RPN and box-head NMS; project output filter `score_thr=0.25`. |
+| YOLO11m | Ultralytics native prediction path with `imgsz=640`, minimum-rectangle padding where applicable, confidence threshold 0.25, and default NMS IoU threshold 0.7. |
+| RT-DETR R50 | Hugging Face RT-DETR image processor at 640x640; query-based end-to-end prediction with score filtering and no conventional NMS stage. |
+
+Because preprocessing is model-native, the experiment compares deployable pretrained inference pipelines rather than artificially forcing identical tensor shapes.
+
+## Final full-dataset accuracy results
+
+| Model | COCO mAP | KITTI mAP | Absolute drop | Relative drop |
+| --- | ---: | ---: | ---: | ---: |
+| Faster R-CNN | 0.4832 | 0.2346 | 0.2486 | 51.5% |
+| YOLO11m | 0.4692 | 0.2247 | 0.2446 | 52.1% |
+| RT-DETR R50 | **0.5014** | **0.2397** | 0.2617 | 52.2% |
+
+### COCO object-scale performance
+
+| Model | AP-small | AP-medium | AP-large |
+| --- | ---: | ---: | ---: |
+| Faster R-CNN | **0.2798** | 0.4907 | 0.6493 |
+| YOLO11m | 0.2034 | 0.4900 | 0.6952 |
+| RT-DETR R50 | 0.2517 | **0.5114** | **0.7103** |
+
+### KITTI per-class AP@[0.50:0.95]
+
+| Model | Vehicle | Person | Cyclist |
+| --- | ---: | ---: | ---: |
+| Faster R-CNN | 0.4479 | **0.2547** | 0.0012 |
+| YOLO11m | 0.4458 | 0.2273 | 0.0008 |
+| RT-DETR R50 | **0.4836** | 0.2341 | **0.0015** |
+
+The near-zero cyclist AP across all three detector families is an important limitation of the cross-dataset evaluation. COCO represents a bicycle and rider differently from KITTI's combined `Cyclist` annotation, so the unified class mapping does not make the bounding-box definitions geometrically equivalent.
+
+## A100 latency benchmark
+
+End-to-end `predict()` latency includes preprocessing and post-processing.
+
+| Model | Precision | Mean latency | P90 latency | FPS |
+| --- | --- | ---: | ---: | ---: |
+| Faster R-CNN | FP32 | 21.2 ms | 22.0 ms | 47.2 |
+| Faster R-CNN | FP16 | 17.7 ms | 17.7 ms | 56.4 |
+| YOLO11m | FP32 | **10.5 ms** | **10.8 ms** | **95.1** |
+| YOLO11m | FP16 | 10.6 ms | 10.9 ms | 94.7 |
+| RT-DETR R50 | FP32 | 28.6 ms | 28.7 ms | 34.9 |
+| RT-DETR R50 | FP16 | 30.4 ms | 30.4 ms | 32.9 |
+
+## Main observations
+
+1. **Domain shift dominates architecture differences.** All three models lose approximately 51.5-52.2% of mAP when moving from COCO to KITTI without retraining.
+2. **RT-DETR has the highest accuracy**, reaching 0.5014 mAP on COCO and 0.2397 on KITTI, but its KITTI advantage is small.
+3. **YOLO11m has the strongest speed-accuracy tradeoff.** It reaches 95.1 FPS in FP32, about 2.0x Faster R-CNN throughput and 2.7x RT-DETR throughput, while remaining close in mAP.
+4. **Small objects remain difficult.** All models are substantially weaker on small objects than large objects; YOLO11m shows the largest COCO small-vs-large gap.
+5. **FP16 is not universally faster.** Faster R-CNN improved by about 20%, YOLO11m was essentially unchanged, and RT-DETR was slightly slower in this end-to-end benchmark.
+6. **Taxonomy alignment does not guarantee annotation alignment.** The systematic cyclist failure shows that cross-dataset metrics can be constrained by annotation semantics and box geometry, not only visual domain shift.
+
+## Repository structure
+
+```text
+configs/jobs.tsv                  Six model x dataset configurations
+scripts/download_datasets.sh      Dataset download helper
+scripts/analyze_results.py        Aggregates final metrics and creates report plots
+slurm/evaluate_array.sbatch       GPU evaluation array job
+slurm/latency.sbatch              FP32/FP16 latency benchmark
+analysis/                         Compact final CSVs, summary, and plots
+RUN_LOG.md                        Job IDs, environment, failures, and final metrics
+```
+
+Large raw predictions, downloaded datasets, Slurm logs, and model checkpoints are intentionally excluded from Git.
+
+## HPC environment
+
+The completed runs used the SJSU HPC `gpuqs` partition and the cluster's Python 3.12 Torch runtime:
+
+```text
+Python       3.12.12
+PyTorch      2.15.0+cu132
+Torchvision  0.29.2+cu132
+Transformers 4.57.3
+Ultralytics  8.4.193
+pycocotools  2.0.11
+GPU          NVIDIA A100-PCIE-40GB
+```
+
+Per-run `pip freeze` and Python-version captures are stored alongside the raw HPC outputs.
+
+## Reproducing the full evaluation
+
+Clone this repository and the professor's repository as siblings, then set the dataset paths:
 
 ```bash
 git clone https://github.com/Parth-Panchal-284/detector-lab.git
 git clone https://github.com/lkk688/DeepDataMiningLearning.git
+
 cd detector-lab
-mkdir -p logs/slurm results
-```
+mkdir -p logs/slurm results_full
 
-Use the cluster's `ml/torch/2.6` module as the Python 3.12 runtime and keep additional packages in the sibling `python-packages/` directory. The Slurm scripts explicitly select that interpreter and add the package directory to `PYTHONPATH`, so they do not depend on the submitting shell's Python selection. The tutorial's runtime packages are `torch`, `torchvision`, `transformers`, `ultralytics`, `pycocotools`, `opencv-python`, `matplotlib`, and `pyarrow`.
-
-Set paths for your own HPC storage (examples only; replace them with your real paths):
-
-```bash
 export TUTORIAL_ROOT="$PWD/../DeepDataMiningLearning"
-export COCO_ROOT="/path/to/coco/val2017"
-export COCO_ANN="/path/to/coco/annotations/instances_val2017.json"
-export KITTI_ROOT="/path/to/KITTI"
-export MAX_IMAGES=20       # smoke test first; use 150 for the main run, 0 for all
+export COCO_ROOT="$PWD/../datasets/coco/val2017"
+export COCO_ANN="$PWD/../datasets/coco/annotations/instances_val2017.json"
+export KITTI_ROOT="$PWD/../datasets/kitti"
+export MAX_IMAGES=0
 export SCORE_THR=0.25
-```
+export RESULTS_DIR="$PWD/results_full"
 
-If the data are not already available in shared storage, run the downloader from the parent `CMPE249` directory into a sibling `datasets/` folder. This keeps the downloaded files outside both Git repositories while keeping the whole project in one place. Make sure the storage has roughly 30 GB free and use a transfer/login node approved for external downloads:
-
-```bash
-cd ~/Downloads/CMPE249
-df -h .
-bash detector-lab/scripts/download_datasets.sh "$PWD/datasets"
-```
-
-The KITTI download is large (the left color training images are about 12 GB compressed). COCO and KITTI are downloaded from their official dataset endpoints; follow their terms of use. The script checks/extracts archives and prints the expected paths when done.
-
-Then set the paths from that script's output. The KITTI root should contain `training/image_2` and `training/label_2`, per the tutorial. The COCO paths should point to `val2017/` and `instances_val2017.json`.
-
-Submit up to three tasks concurrently (adjust to cluster policy/availability):
-
-```bash
 sbatch --array=0-5%3 slurm/evaluate_array.sbatch
 ```
 
-After the smoke test succeeds, set `MAX_IMAGES=150` and submit again for the main run. For a full validation pass, set `MAX_IMAGES=0`. Track jobs with `squeue -u "$USER"`; inspect logs under `logs/slurm/` and results under `results/`.
+The evaluation wrapper performs a real CUDA smoke test and verifies that every successful Slurm task creates a fresh `metrics.json`. This prevents a model-level CUDA failure from being mistaken for a successful evaluation.
 
-Once the evaluation jobs finish, the optional latency job measures all three models on the same allocated A100 with warmup and repeated iterations:
+## Reproducing latency
 
 ```bash
+cd detector-lab
+
+export TUTORIAL_ROOT="$PWD/../DeepDataMiningLearning"
+export KITTI_ROOT="$PWD/../datasets/kitti"
+
 sbatch slurm/latency.sbatch
 ```
 
-It writes the latency report to the professor repository's `ngdet/output/` directory. Copy the resulting report/JSON into `results/latency/` if you want it archived with this project's run artifacts (generated outputs are ignored by Git).
+The successful benchmark was Slurm job `99987`.
 
-Before interpreting metrics, confirm that each result has both relevant classes and valid predictions. The harness maps classes into a shared taxonomy, but a COCO bicycle box and a KITTI cyclist box do not describe exactly the same object extent; document this limitation.
+## Generating final tables and plots
 
-## Reproducibility checklist
-
-For every run, record model/checkpoint, dataset and split, image count, score threshold, hardware, Python/framework versions, exact Slurm command, and output paths. Include failed or restarted jobs in the run log and use only completed `metrics.json` files in final tables.
-
-## Push changes from this checkout
+Use the same Python 3.12 interpreter as the GPU jobs. The login shell's plain `python` may point to an older interpreter that cannot import the installed Matplotlib version.
 
 ```bash
-git add .gitignore README.md RUN_LOG.md configs slurm
-git commit -m "Add object detection experiment scaffold"
-git push -u origin main
+cd detector-lab
+
+/app/rl9.x/ml/torch/2.6/bin/python \
+  scripts/analyze_results.py \
+  --results-dir results_full \
+  --latency-json \
+  ../DeepDataMiningLearning/DeepDataMiningLearning/ngdet/output/latency.json \
+  --out-dir analysis
 ```
+
+Generated report artifacts:
+
+```text
+analysis/full_metrics.csv
+analysis/latency_metrics.csv
+analysis/summary.md
+analysis/map_coco_vs_kitti.png
+analysis/generalization_drop.png
+analysis/kitti_per_class_ap.png
+analysis/object_scale_coco.png
+analysis/object_scale_kitti.png
+analysis/speed_accuracy_fp32.png
+```
+
+See `RUN_LOG.md` for the successful job IDs and the cluster failures encountered during the full-dataset evaluation.
