@@ -6,7 +6,7 @@ Reproducible zero-shot evaluation of three modern 2D object-detector families on
 
 How well do fundamentally different COCO-pretrained detector families transfer to autonomous-driving imagery without fine-tuning, and what speed-accuracy tradeoffs emerge?
 
-The experiment follows the professor's [`ngdet` tutorial](https://github.com/lkk688/DeepDataMiningLearning/blob/main/DeepDataMiningLearning/ngdet/TUTORIAL.md) and uses its shared `driving3` taxonomy, dataset adapters, COCO-style evaluator, and latency benchmark.
+The experiment follows the professor's [`ngdet` tutorial](https://github.com/lkk688/DeepDataMiningLearning/blob/main/DeepDataMiningLearning/ngdet/TUTORIAL.md) and uses its shared `driving3` taxonomy, dataset adapters, COCO-style evaluator, and latency benchmark. The experiments were run against `DeepDataMiningLearning` commit `cc64ca3ed3aa1ce7df3cf381c492bc7a9826b749`.
 
 ## Models
 
@@ -23,7 +23,7 @@ All checkpoints are pretrained. No model was fine-tuned on KITTI.
 The same three models were evaluated on two domains:
 
 - **COCO val2017:** all 5,000 validation images.
-- **KITTI:** the 5,984-image labeled evaluation split resolved by the tutorial harness from the local KITTI `training/image_2` and `training/label_2` data.
+- **KITTI train split:** 5,984 labeled images from local `training/image_2` and `training/label_2`, as resolved by the tutorial harness.
 
 The tutorial maps native dataset/model labels into the shared taxonomy:
 
@@ -105,9 +105,12 @@ End-to-end `predict()` latency includes preprocessing and post-processing.
 configs/jobs.tsv                  Six model x dataset configurations
 scripts/download_datasets.sh      Dataset download helper
 scripts/analyze_results.py        Aggregates final metrics and creates report plots
+scripts/qualitative_examples.py   Selects representative failure cases and renders comparison panels
 slurm/evaluate_array.sbatch       GPU evaluation array job
 slurm/latency.sbatch              FP32/FP16 latency benchmark
-analysis/                         Compact final CSVs, summary, and plots
+slurm/qualitative.sbatch          Qualitative-analysis GPU job
+analysis/                         Compact final CSVs, summary, plots, and qualitative findings
+qualitative/                      GT + three-model comparison panels and case-level diagnostics
 RUN_LOG.md                        Job IDs, environment, failures, and final metrics
 ```
 
@@ -137,7 +140,9 @@ Clone this repository and the professor's repository as siblings, then set the d
 git clone https://github.com/Parth-Panchal-284/detector-lab.git
 git clone https://github.com/lkk688/DeepDataMiningLearning.git
 
-cd detector-lab
+cd DeepDataMiningLearning
+git checkout cc64ca3ed3aa1ce7df3cf381c492bc7a9826b749
+cd ../detector-lab
 mkdir -p logs/slurm results_full
 
 export TUTORIAL_ROOT="$PWD/../DeepDataMiningLearning"

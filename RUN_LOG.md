@@ -18,8 +18,9 @@ This file records the experiments used for the final Track A object-detection st
 | Taxonomy | `driving3`: vehicle, person, cyclist |
 | Prediction score threshold | 0.25 |
 | COCO split | `val2017`, 5,000 images |
-| KITTI evaluation data | 5,984 labeled images resolved by the tutorial harness from local KITTI training data |
+| KITTI split | `train`, 5,984 labeled images from local KITTI training data |
 | Training / fine-tuning | None; pretrained checkpoints used zero-shot |
+| Professor repo commit | `cc64ca3ed3aa1ce7df3cf381c492bc7a9826b749` |
 
 Package versions were captured independently in each result directory using `pip freeze`.
 
@@ -176,3 +177,21 @@ analysis/summary.md
 ```
 
 The plain login-shell `python` was too old for the installed Matplotlib (`match` syntax). Using the same Python 3.12 interpreter as the GPU jobs resolved this without changing the analysis code.
+
+## Qualitative failure analysis
+
+A separate reproducible qualitative pass selected representative scenes from both datasets using ground-truth composition only, then ran all three detectors on the same images. The script records class-aware TP/FP/FN diagnostics at IoU 0.50 and saves four-column comparison panels (ground truth, Faster R-CNN, YOLO11m, RT-DETR).
+
+Key artifacts:
+
+```text
+scripts/qualitative_examples.py
+slurm/qualitative.sbatch
+analysis/qualitative_findings.md
+qualitative/selection.json
+qualitative/qualitative_metrics.csv
+qualitative/*.png
+```
+
+The final report uses four representative cases: COCO crowded, COCO small-object, KITTI cyclist, and KITTI person. These support the written analysis of precision/recall tradeoffs, small-object misses, cyclist annotation mismatch, and clutter-driven false positives.
+
